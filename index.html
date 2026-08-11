@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 무료 운세 및 사주 분석기</title>
+    <meta name="description" content="이름과 생년월일만으로 간단하게 알아보는 나의 오늘 운세와 탄생석 분석 결과를 확인해보세요!">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+        /* 기본 스타일링 */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
+            overflow: hidden; 
+            transition: background-color 1s ease-in-out; /* 배경색 전환 애니메이션 */
+        }
+        
+        /* 배경색 설정 */
+        .bg-normal { background-color: #f3f4f6; } /* 평범한 회색 배경 */
+        .bg-pink { background-color: #ffe4e1; } /* 고백할 때 핑크 배경 */
+
+        /* 로딩 스피너 애니메이션 */
+        .loader { 
+            border: 4px solid #e5e7eb; 
+            border-top: 4px solid #4b5563; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto;
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        /* 기호가 하늘로 날아가는 애니메이션 */
+        .floating-symbol {
+            position: absolute;
+            bottom: -50px; /* 화면 아래에서 시작 */
+            animation: floatUp linear infinite;
+            z-index: 1;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 고백 메시지 박스 */
+        .confession-box {
+            z-index: 10; 
+            text-align: center; 
+            background-color: rgba(255, 255, 255, 0.85); 
+            padding: 40px; 
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(255, 105, 180, 0.2);
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-normal">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const App = () => {
+            // 상태 관리: 'INPUT' (입력창), 'LOADING' (로딩중), 'CONFESSION' (고백화면)
+            const [step, setStep] = React.useState('INPUT'); 
+            const [name, setName] = React.useState('');
+            const [birthday, setBirthday] = React.useState('');
+
+            // 폼 제출 시 3초 로딩 후 고백 화면으로 전환
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setStep('LOADING');
+                
+                setTimeout(() => {
+                    setStep('CONFESSION');
+                }, 3000);
+            };
+
+            // 화면 상태에 따라 body의 배경색 클래스 변경
+            React.useEffect(() => {
+                document.body.className = step === 'CONFESSION' ? 'bg-pink' : 'bg-normal';
+            }, [step]);
+
+            // 날아다니는 기호들 생성기 (이모티콘 대신 문자 기호 사용)
+            const generateParticles = () => {
+                const symbols = ['♥', '♡', '★', '☆', '✿', '✦', '✧', '❥', '♪'];
+                const particles = [];
+                
+                for (let i = 0; i < 50; i++) {
+                    const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    const left = Math.random() * 100 + 'vw';
+                    const animationDuration = (Math.random() * 4 + 3) + 's'; // 3~7초 사이로 날아감
+                    const animationDelay = (Math.random() * 3) + 's'; // 0~3초 사이 딜레이
+                    const fontSize = (Math.random() * 20 + 15) + 'px';
+                    const color = Math.random() > 0.5 ? '#ff69b4' : '#ff1493'; // 핫핑크 계열
+                    
+                    particles.push(
+                        <div key={i} className="floating-symbol" style={{
+                            left, 
+                            animationDuration, 
+                            animationDelay, 
+                            fontSize, 
+                            color
+                        }}>
+                            {symbol}
+                        </div>
+                    );
+                }
+                return particles;
+            };
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', position: 'relative' }}>
+                    
+                    {/* 1. 처음 위장용 입력 화면 */}
+                    {step === 'INPUT' && (
+                        <div style={{ background: 'white', padding: '40px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center', width: '300px' }}>
+                            <h2 style={{ color: '#333', marginTop: 0 }}>일일 운세 분석</h2>
+                            <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>정확한 결과를 위해 정보를 입력해주세요.</p>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <input 
+                                    type="text" 
+                                    placeholder="이름" 
+                                    required 
+                                    value={name} 
+                                    onChange={e => setName(e.target.value)} 
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }} 
+                                />
+                                <input 
+                                    type="date" 
+                                    required 
+                                    value={birthday} 
+                                    onChange={e => setBirthday(e.target.value)} 
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }} 
+                                />
+                                <button 
+                                    type="submit" 
+                                    style={{ padding: '12px', background: '#4b5563', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    결과 보기
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                    
+                    {/* 2. 가짜 로딩 화면 (3초) */}
+                    {step === 'LOADING' && (
+                        <div style={{ textAlign: 'center' }}>
+                            <div className="loader"></div>
+                            <p style={{ marginTop: '20px', fontSize: '16px', color: '#555', fontWeight: 'bold' }}>
+                                운세 및 사주 데이터를 분석 중입니다...
+                            </p>
+                            <p style={{ fontSize: '14px', color: '#888' }}>잠시만 기다려주세요.</p>
+                        </div>
+                    )}
+
+                    {/* 3. 깜짝 고백 화면 */}
+                    {step === 'CONFESSION' && (
+                        <>
+                            <div className="confession-box">
+                                <h1 style={{ color: '#ff1493', marginBottom: '20px' }}>짠! 서프라이즈!</h1>
+                                <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#333', lineHeight: '1.5' }}>
+                                    {name}아,<br/>
+                                    사실 운세 사이트가 아니었어!<br/>
+                                    널 많이 좋아해! ♥
+                                </p>
+                            </div>
+                            {/* 하늘로 날아다니는 기호들 */}
+                            {generateParticles()}
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
